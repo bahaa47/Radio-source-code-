@@ -69,20 +69,17 @@ export default function AdminPlaylist() {
     console.log(`[FFmpeg] Multi-threading support (SharedArrayBuffer + crossOriginIsolated): ${isMultiThreaded}`);
 
     const ffmpeg = new FFmpeg();
-    // Use version 0.12.6 which is more stable with the new API
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
     
     console.log("[FFmpeg] Loading core from:", baseURL);
     
     try {
-      // Force single-threaded mode to avoid SharedArrayBuffer issues in Replit environment
-      const loadOptions: any = {
+      // Use the standard load, which will use multi-threading if available
+      // but fallback gracefully. Removed explicit single-thread forcing.
+      await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      };
-
-      console.log("[FFmpeg] Loading in single-threaded mode for maximum compatibility");
-      await ffmpeg.load(loadOptions);
+      });
       ffmpegRef.current = ffmpeg;
       return ffmpeg;
     } catch (err) {
@@ -120,19 +117,17 @@ export default function AdminPlaylist() {
 
     console.log("[3/5] Starting high-speed conversion (this is the heavy lifting)...");
     try {
-      // Force standard MP3 muxing with explicit audio stream mapping
-      // This is the most robust way to ensure the output is playable everywhere
+      // Optimized for speed: ultrafast preset and lower quality for quicker extraction
       await ffmpeg.exec([
         "-i", inputName,
-        "-vn",                // No video
+        "-vn",
         "-acodec", "libmp3lame",
-        "-b:a", "128k",       // Fixed bitrate for stability
-        "-ar", "44100",       // Standard sample rate
-        "-ac", "2",           // Stereo
-        "-map", "a:0",        // Map the first audio stream explicitly
-        "-id3v2_version", "3", // Compatibility
-        "-write_id3v1", "1",
-        "-f", "mp3",          // Force MP3 container
+        "-b:a", "96k",         // Slightly lower bitrate for faster processing
+        "-preset", "ultrafast", // Use the fastest possible preset
+        "-ar", "44100",
+        "-ac", "2",
+        "-map", "a:0",
+        "-f", "mp3",
         "-y",
         outputName
       ]);
