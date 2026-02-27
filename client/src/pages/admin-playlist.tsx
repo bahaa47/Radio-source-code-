@@ -321,14 +321,19 @@ export default function AdminPlaylist() {
       setIsUploading(true);
       setUploadProgress(0);
 
-      // Extract audio if it's a video file or needs conversion
+      // Use a standard MP3 check - only convert if it's definitely NOT MP3 or is Video
       let uploadFile = file;
-      if (isVideo || (isAudio && file.type !== "audio/mpeg")) {
+      const isMp3 = file.type === "audio/mpeg" || file.name.toLowerCase().endsWith(".mp3");
+      
+      if (isVideo || !isMp3) {
         try {
+          toast({
+            title: "Processing file",
+            description: "Converting to optimized audio format...",
+          });
           uploadFile = await extractAudioLocally(file);
         } catch (err) {
           console.error("FFmpeg conversion failed, attempting direct upload:", err);
-          // Fallback to original file if conversion fails
           uploadFile = file;
         }
       }
