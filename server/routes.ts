@@ -190,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trackData = insertAudioTrackSchema.parse({
         title,
         artist,
-        duration,
+        duration: duration || 180,
         fileUrl: getStorageUrl(uniqueKey),
         order: (await storage.getAllTracks()).length,
         uploadStatus: "uploading",
@@ -207,7 +207,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       setImmediate(async () => {
         try {
-          await uploadToStorage(uniqueKey, fileBuffer, mimeType);
+          let processedBuffer = fileBuffer;
+          let processedMimeType = mimeType;
+          let processedKey = uniqueKey;
+
+          if (isVideo) {
+            try {
+              console.log(`Processing video to audio: ${uniqueKey}`);
+              const inputPath = path.join(process.cwd(), "uploads", `temp_${Date.now()}${ext}`);
+              const outputPath = inputPath.replace(ext, ".mp3");
+              
+              const fs = await import("fs/promises");
+              await fs.writeFile(inputPath, fileBuffer);
+              
+              execSync(`ffmpeg -i "${inputPath}" -vn -acodec libmp3lame -q:a 4 -y "${outputPath}"`);
+              
+              processedBuffer = await fs.readFile(outputPath);
+              processedMimeType = "audio/mpeg";
+              processedKey = uniqueKey.replace(ext, ".mp3");
+              
+              await fs.unlink(inputPath);
+              await fs.unlink(outputPath);
+              
+              // Update track URL if it changed
+              await storage.updateTrack(track.id, { 
+                fileUrl: getStorageUrl(processedKey) 
+              });
+            } catch (ffmpegErr) {
+              console.error("Server-side FFmpeg failed:", ffmpegErr);
+            }
+          }
+
+          await uploadToStorage(processedKey, processedBuffer, processedMimeType);
           await storage.updateTrack(track.id, { uploadStatus: "ready" });
           broadcastToClients({
             type: "track_ready",

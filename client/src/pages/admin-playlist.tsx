@@ -316,74 +316,33 @@ export default function AdminPlaylist() {
 
       toast({
         title: "Uploading file",
-        description: "Processing your file...",
+        description: "Uploading directly to server...",
       });
 
-      setUploadProgress(10);
-
-      let uploadFile = file;
-      const isMp3 = file.type === "audio/mpeg" || file.name.toLowerCase().endsWith(".mp3");
-      const isVideo = file.type.startsWith('video/');
+      const formData = new FormData();
+      formData.append("audio", file);
+      formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
+      formData.append("artist", "Unknown Artist");
       
-      if (isVideo || !isMp3) {
-        try {
-          toast({
-            title: "Processing file",
-            description: "Converting video to audio locally to save upload time...",
-          });
-          uploadFile = await extractAudioLocally(file);
-        } catch (err) {
-          console.error("FFmpeg conversion failed, attempting direct upload:", err);
-          toast({
-            title: "Conversion failed",
-            description: "Could not extract audio locally. Attempting to upload original file...",
-            variant: "destructive",
-          });
-          uploadFile = file;
-        }
+      // We'll get duration on the server or use a default
+      formData.append("duration", "180");
+
+      const response = await fetch("/api/tracks/fast", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload failed");
       }
 
-      setUploadProgress(60);
-
-      let duration = await getAudioDuration(uploadFile);
-      const actualExt = uploadFile.name.split('.').pop() || "mp3";
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${actualExt}`;
-      const filePath = `uploads/${fileName}`;
-
-      console.log(`[Supabase] Starting upload: ${fileName}`);
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('audio-files')
-        .upload(filePath, uploadFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: uploadFile.type,
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-      
-      setUploadProgress(95);
-      const { data: { publicUrl } } = supabase.storage
-        .from('audio-files')
-        .getPublicUrl(filePath);
-
-      const newTrack = {
-        title: file.name.replace(/\.[^/.]+$/, ""),
-        artist: "Unknown Artist",
-        duration: Math.ceil(duration) || 180, 
-        fileUrl: publicUrl,
-        order: tracks.length,
-        uploadStatus: "ready"
-      };
-
-      await apiRequest("POST", "/api/tracks/fast-supabase", newTrack);
+      const track = await response.json();
       
       setUploadProgress(100);
       toast({
         title: "Upload successful",
-        description: `${file.name} has been added to the playlist`,
+        description: `${file.name} has been added to the playlist and is being processed.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tracks"] });
     } catch (error: any) {
