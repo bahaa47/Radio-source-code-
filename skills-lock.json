@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "javascript-sdk": {
+      "source": "inf-sh/skills",
+      "sourceType": "github",
+      "computedHash": "7dae6c21fddab044c29b05765f9a9bb6218efc05caa481d54ac16679049fd300"
+    }
+  }
+}

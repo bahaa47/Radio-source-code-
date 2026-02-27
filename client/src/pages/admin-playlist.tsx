@@ -314,9 +314,16 @@ export default function AdminPlaylist() {
       setIsUploading(true);
       setUploadProgress(0);
 
-      // Use a standard MP3 check - only convert if it's definitely NOT MP3 or is Video
+      toast({
+        title: "Uploading file",
+        description: "Processing your file...",
+      });
+
+      setUploadProgress(10);
+
       let uploadFile = file;
       const isMp3 = file.type === "audio/mpeg" || file.name.toLowerCase().endsWith(".mp3");
+      const isVideo = file.type.startsWith('video/');
       
       if (isVideo || !isMp3) {
         try {
@@ -336,7 +343,7 @@ export default function AdminPlaylist() {
         }
       }
 
-      setUploadProgress(10); // Start progress bar
+      setUploadProgress(60);
 
       let duration = await getAudioDuration(uploadFile);
       const actualExt = uploadFile.name.split('.').pop() || "mp3";
@@ -351,7 +358,6 @@ export default function AdminPlaylist() {
           cacheControl: '3600',
           upsert: false,
           contentType: uploadFile.type,
-          // Track upload progress if Supabase client supports it (it usually doesn't directly in this version, but we can fake it or use XHR if needed)
         });
 
       if (uploadError) {
