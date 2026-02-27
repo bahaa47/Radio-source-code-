@@ -321,19 +321,31 @@ export default function AdminPlaylist() {
       setIsUploading(true);
       setUploadProgress(0);
 
-      let duration = await getAudioDuration(file);
-      const actualExt = "mp3";
+      // Extract audio if it's a video file or needs conversion
+      let uploadFile = file;
+      if (isVideo || (isAudio && file.type !== "audio/mpeg")) {
+        try {
+          uploadFile = await extractAudioLocally(file);
+        } catch (err) {
+          console.error("FFmpeg conversion failed, attempting direct upload:", err);
+          // Fallback to original file if conversion fails
+          uploadFile = file;
+        }
+      }
+
+      let duration = await getAudioDuration(uploadFile);
+      const actualExt = uploadFile.name.split('.').pop() || "mp3";
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${actualExt}`;
       const filePath = `uploads/${fileName}`;
 
-      console.log(`[Supabase] Starting resumable upload: ${fileName}`);
+      console.log(`[Supabase] Starting upload: ${fileName}`);
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-files')
-        .upload(filePath, file, {
+        .upload(filePath, uploadFile, {
           cacheControl: '3600',
           upsert: false,
-          contentType: "audio/mpeg",
+          contentType: uploadFile.type,
         });
 
       if (uploadError) {
