@@ -69,13 +69,13 @@ export default function AdminPlaylist() {
     console.log(`[FFmpeg] Multi-threading support (SharedArrayBuffer + crossOriginIsolated): ${isMultiThreaded}`);
 
     const ffmpeg = new FFmpeg();
+    // Use a more reliable CDN or version if needed, but 0.12.6 is generally fine.
+    // The key is to ensure we don't block the UI and handle errors gracefully.
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
     
     console.log("[FFmpeg] Loading core from:", baseURL);
     
     try {
-      // Use the standard load, which will use multi-threading if available
-      // but fallback gracefully. Removed explicit single-thread forcing.
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
@@ -84,8 +84,11 @@ export default function AdminPlaylist() {
       return ffmpeg;
     } catch (err) {
       console.error("[FFmpeg] Core load failed. Error detail:", err);
-      // Try an even older/simpler URL if unpkg is acting up
-      console.log("[FFmpeg] Retrying with alternative delivery...");
+      toast({
+        title: "FFmpeg Load Failed",
+        description: "Could not load video processing engine. Please check your internet connection or try a different browser.",
+        variant: "destructive",
+      });
       throw err;
     }
   };
@@ -93,12 +96,12 @@ export default function AdminPlaylist() {
   const extractAudioLocally = async (file: File) => {
     console.log(`[1/5] Initializing audio extraction for: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     const ffmpeg = await loadFFmpeg();
-    const inputName = "input_" + Date.now() + file.name.substring(file.name.lastIndexOf("."));
-    const outputName = "output_" + Date.now() + ".mp3";
+    const inputExt = file.name.substring(file.name.lastIndexOf(".")).toLowerCase() || ".mp4";
+    const inputName = `input_${Date.now()}${inputExt}`;
+    const outputName = `output_${Date.now()}.mp3`;
     
     console.log("[2/5] Preparing file for processing...");
     try {
-      // Use a slightly larger chunk for reading to speed up processing
       const fileData = await fetchFile(file);
       await ffmpeg.writeFile(inputName, fileData);
       console.log("[FFmpeg] Input file ready in memory FS");
@@ -109,31 +112,30 @@ export default function AdminPlaylist() {
     
     ffmpeg.on("log", ({ message }) => {
       if (message.includes("size=") || message.includes("time=")) {
+        // Extract time to update progress if possible, but for now just log
         console.log(`[3/5][FFmpeg] Processing: ${message}`);
-      } else if (message.toLowerCase().includes("error")) {
-        console.error(`[FFmpeg Error] ${message}`);
       }
     });
 
-    console.log("[3/5] Starting high-speed conversion (this is the heavy lifting)...");
+    console.log("[3/5] Starting conversion...");
     try {
-      // Optimized for speed: ultrafast preset and lower quality for quicker extraction
+      // Optimized for speed and compatibility
+      // -vn: no video
+      // -acodec libmp3lame: mp3 encoding
+      // -q:a 4: good variable bitrate (~160kbps)
+      // -preset ultrafast: fastest compression
       await ffmpeg.exec([
         "-i", inputName,
         "-vn",
         "-acodec", "libmp3lame",
-        "-b:a", "96k",         // Slightly lower bitrate for faster processing
-        "-preset", "ultrafast", // Use the fastest possible preset
-        "-ar", "44100",
-        "-ac", "2",
-        "-map", "a:0",
-        "-f", "mp3",
+        "-q:a", "4",
+        "-preset", "ultrafast",
         "-y",
         outputName
       ]);
       console.log("[FFmpeg] Conversion command finished");
     } catch (err) {
-      console.error("[FFmpeg Error] Conversion crashed:", err);
+      console.error("[FFmpeg Error] Conversion failed:", err);
       throw err;
     }
     
@@ -147,20 +149,16 @@ export default function AdminPlaylist() {
       throw err;
     }
     
-    console.log("[5/5] Cleanup and preparation for upload...");
+    console.log("[5/5] Cleanup...");
     try {
       await ffmpeg.deleteFile(inputName);
       await ffmpeg.deleteFile(outputName);
     } catch (e) {
-      console.warn("[Processing] Cleanup warning (non-fatal):", e);
+      console.warn("[Processing] Cleanup warning:", e);
     }
     
     const audioFile = new File([data], file.name.replace(/\.[^/.]+$/, ".mp3"), { type: "audio/mpeg" });
-    console.log(`[Done] Ready to upload: ${(audioFile.size / 1024 / 1024).toFixed(2)} MB`);
-    // Ensure the returned file has the correct MIME type for the browser and no weird naming
-    const finalBlob = audioFile.slice(0, audioFile.size, "audio/mpeg");
-    const finalFile = new File([finalBlob], audioFile.name, { type: "audio/mpeg" });
-    return finalFile;
+    return audioFile;
   };
 
   const { data: tracks = [], isLoading } = useQuery<AudioTrack[]>({
@@ -324,14 +322,21 @@ export default function AdminPlaylist() {
         try {
           toast({
             title: "Processing file",
-            description: "Converting to optimized audio format...",
+            description: "Converting video to audio locally to save upload time...",
           });
           uploadFile = await extractAudioLocally(file);
         } catch (err) {
           console.error("FFmpeg conversion failed, attempting direct upload:", err);
+          toast({
+            title: "Conversion failed",
+            description: "Could not extract audio locally. Attempting to upload original file...",
+            variant: "destructive",
+          });
           uploadFile = file;
         }
       }
+
+      setUploadProgress(10); // Start progress bar
 
       let duration = await getAudioDuration(uploadFile);
       const actualExt = uploadFile.name.split('.').pop() || "mp3";
@@ -346,13 +351,14 @@ export default function AdminPlaylist() {
           cacheControl: '3600',
           upsert: false,
           contentType: uploadFile.type,
+          // Track upload progress if Supabase client supports it (it usually doesn't directly in this version, but we can fake it or use XHR if needed)
         });
 
       if (uploadError) {
         throw uploadError;
       }
       
-      setUploadProgress(90);
+      setUploadProgress(95);
       const { data: { publicUrl } } = supabase.storage
         .from('audio-files')
         .getPublicUrl(filePath);
