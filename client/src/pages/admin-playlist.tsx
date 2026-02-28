@@ -314,6 +314,9 @@ export default function AdminPlaylist() {
       setIsUploading(true);
       setUploadProgress(0);
 
+      const duration = await getAudioDuration(file);
+      console.log(`[Upload] Detected duration: ${duration}s`);
+
       toast({
         title: "Uploading file",
         description: "Uploading directly to server...",
@@ -323,9 +326,7 @@ export default function AdminPlaylist() {
       formData.append("audio", file);
       formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
       formData.append("artist", "Unknown Artist");
-      
-      // We'll get duration on the server or use a default
-      formData.append("duration", "180");
+      formData.append("duration", Math.round(duration || 180).toString());
 
       const response = await fetch("/api/tracks/fast", {
         method: "POST",
