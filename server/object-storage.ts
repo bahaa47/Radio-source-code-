@@ -1,13 +1,20 @@
 import { Client } from "@replit/object-storage";
 import path from "path";
 import fs from "fs/promises";
-import ImageKit from "imagekit";
 
-const imagekit = new ImageKit({
+let ImageKit: any;
+try {
+  ImageKit = await import("imagekit");
+  if (ImageKit.default) ImageKit = ImageKit.default;
+} catch (e) {
+  console.error("Failed to load ImageKit:", e);
+}
+
+const imagekit = ImageKit ? new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || ""
-});
+}) : null;
 
 let storageClient: Client | null = null;
 let useLocalStorage = false;
@@ -42,12 +49,9 @@ export async function uploadToStorage(
   buffer: Buffer,
   contentType: string
 ): Promise<string> {
-  if (useImageKit) {
+  if (useImageKit && imagekit) {
     try {
       const filename = key.replace(/^audio\//, "");
-      // Ensure the filename has an allowed extension if needed, 
-      // but ImageKit handles most. The user specifically asked to 
-      // ensure it ends in .mp3 or .mp4 for better compatibility.
       let ikFilename = filename;
       if (contentType.startsWith("audio/") && !ikFilename.toLowerCase().endsWith(".mp3")) {
         ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp3";
@@ -55,12 +59,14 @@ export async function uploadToStorage(
         ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp4";
       }
 
+      console.log(`Uploading to ImageKit: ${ikFilename}`);
       const result = await imagekit.upload({
         file: buffer,
         fileName: ikFilename,
         folder: "/radio-tracks",
         useUniqueFileName: false
       });
+      console.log(`ImageKit upload successful: ${result.url}`);
       return result.url;
     } catch (error) {
       console.error("ImageKit upload failed, falling back:", error);
