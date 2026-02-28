@@ -42,6 +42,7 @@ export interface RadioState {
   backgroundVolume: number;
   listenerCount: number;
   broadcastEnabled: boolean;
+  syncMethod: "manual" | "auto";
 }
 
 export interface AdminLiveState {

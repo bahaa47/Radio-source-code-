@@ -82,6 +82,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
 
+  const STATION_LAUNCH_DATE = new Date("2024-01-01T00:00:00Z").getTime();
+
+  async function updatePlaybackSync() {
+    const tracks = await storage.getAllTracks();
+    const readyTracks = tracks.filter(t => t.uploadStatus === "ready" || !t.uploadStatus);
+    const state = await storage.getRadioState();
+
+    if (readyTracks.length === 0 || state.syncMethod === "manual") return;
+
+    const totalPlaylistDuration = readyTracks.reduce((sum, t) => {
+      const duration = (t.endOffset || t.duration) - (t.startOffset || 0);
+      return sum + duration;
+    }, 0);
+
+    if (totalPlaylistDuration === 0) return;
+
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - STATION_LAUNCH_DATE) / 1000);
+    const positionInPlaylist = elapsedSeconds % totalPlaylistDuration;
+
+    let accumulatedTime = 0;
+    let currentTrack = readyTracks[0];
+    let trackPosition = 0;
+
+    for (const track of readyTracks) {
+      const duration = (track.endOffset || track.duration) - (track.startOffset || 0);
+      if (accumulatedTime + duration > positionInPlaylist) {
+        currentTrack = track;
+        trackPosition = positionInPlaylist - accumulatedTime;
+        break;
+      }
+      accumulatedTime += duration;
+    }
+
+    if (state.currentTrackId !== currentTrack.id || Math.abs(state.playbackPosition - trackPosition) > 2) {
+      await storage.updateRadioState({
+        currentTrackId: currentTrack.id,
+        playbackPosition: trackPosition
+      });
+
+      broadcastToClients({
+        type: "playback_sync",
+        trackId: currentTrack.id,
+        position: trackPosition,
+        startOffset: currentTrack.startOffset || 0,
+      });
+    }
+  }
+
+  setInterval(updatePlaybackSync, 1000);
+
+  app.post("/api/radio/sync-method", async (req, res) => {
+    try {
+      const { method } = req.body;
+      if (method !== "manual" && method !== "auto") {
+        return res.status(400).json({ error: "Invalid sync method" });
+      }
+      await storage.updateRadioState({ syncMethod: method });
+      res.json({ success: true, method });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update sync method" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;

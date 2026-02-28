@@ -371,6 +371,33 @@ export default function AdminPlaylist() {
         </div>
         <div className="flex gap-4 items-center">
           <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border">
+            <Radio className={`h-4 w-4 ${radioState.syncMethod === "auto" ? "text-primary animate-pulse" : "text-muted-foreground"}`} />
+            <Label htmlFor="sync-method-toggle" className="text-sm font-medium cursor-pointer">
+              {radioState.syncMethod === "auto" ? "Auto-Sync ON" : "Manual Mode"}
+            </Label>
+            <Switch
+              id="sync-method-toggle"
+              checked={radioState.syncMethod === "auto"}
+              onCheckedChange={async (checked) => {
+                try {
+                  const method = checked ? "auto" : "manual";
+                  await apiRequest("POST", "/api/radio/sync-method", { method });
+                  toast({
+                    title: checked ? "Auto-sync enabled" : "Manual mode enabled",
+                    description: checked ? "Playlist will loop automatically" : "You have full control over playback",
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to toggle sync method",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              data-testid="toggle-sync-method"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border">
             <Radio className={`h-4 w-4 ${radioState.broadcastEnabled ? "text-primary animate-pulse" : "text-muted-foreground"}`} />
             <Label htmlFor="broadcast-toggle" className="text-sm font-medium cursor-pointer">
               {radioState.broadcastEnabled ? "Public Broadcast ON" : "Public Broadcast OFF"}
