@@ -2,19 +2,37 @@ import { Client } from "@replit/object-storage";
 import path from "path";
 import fs from "fs/promises";
 
+// Dynamically import ImageKit to avoid startup errors if package is missing
 let ImageKit: any;
-try {
-  ImageKit = await import("imagekit");
-  if (ImageKit.default) ImageKit = ImageKit.default;
-} catch (e) {
-  console.error("Failed to load ImageKit:", e);
-}
+const loadImageKit = async () => {
+  if (ImageKit) return ImageKit;
+  try {
+    const mod = await import("imagekit");
+    ImageKit = mod.default || mod;
+    return ImageKit;
+  } catch (e) {
+    console.error("Failed to load ImageKit library:", e);
+    return null;
+  }
+};
 
-const imagekit = ImageKit ? new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || ""
-}) : null;
+let ikInstance: any = null;
+const getIK = async () => {
+  if (ikInstance) return ikInstance;
+  const IK = await loadImageKit();
+  if (!IK) return null;
+  try {
+    ikInstance = new IK({
+      publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
+      privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
+      urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || ""
+    });
+    return ikInstance;
+  } catch (e) {
+    console.error("Failed to initialize ImageKit instance:", e);
+    return null;
+  }
+};
 
 let storageClient: Client | null = null;
 let useLocalStorage = false;
@@ -49,27 +67,32 @@ export async function uploadToStorage(
   buffer: Buffer,
   contentType: string
 ): Promise<string> {
-  if (useImageKit && imagekit) {
-    try {
-      const filename = key.replace(/^audio\//, "");
-      let ikFilename = filename;
-      if (contentType.startsWith("audio/") && !ikFilename.toLowerCase().endsWith(".mp3")) {
-        ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp3";
-      } else if (contentType.startsWith("video/") && !ikFilename.toLowerCase().endsWith(".mp4")) {
-        ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp4";
-      }
+  if (useImageKit) {
+    const ik = await getIK();
+    if (ik) {
+      try {
+        const filename = key.replace(/^audio\//, "");
+        let ikFilename = filename;
+        if (contentType.startsWith("audio/") && !ikFilename.toLowerCase().endsWith(".mp3")) {
+          ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp3";
+        } else if (contentType.startsWith("video/") && !ikFilename.toLowerCase().endsWith(".mp4")) {
+          ikFilename = ikFilename.replace(/\.[^/.]+$/, "") + ".mp4";
+        }
 
-      console.log(`Uploading to ImageKit: ${ikFilename}`);
-      const result = await imagekit.upload({
-        file: buffer,
-        fileName: ikFilename,
-        folder: "/radio-tracks",
-        useUniqueFileName: false
-      });
-      console.log(`ImageKit upload successful: ${result.url}`);
-      return result.url;
-    } catch (error) {
-      console.error("ImageKit upload failed, falling back:", error);
+        console.log(`Uploading to ImageKit: ${ikFilename}`);
+        const result = await ik.upload({
+          file: buffer,
+          fileName: ikFilename,
+          folder: "/radio-tracks",
+          useUniqueFileName: false
+        });
+        console.log(`ImageKit upload successful: ${result.url}`);
+        return result.url;
+      } catch (error) {
+        console.error("ImageKit upload failed, falling back:", error);
+      }
+    } else {
+      console.warn("ImageKit library not loaded, falling back to other storage");
     }
   }
 
