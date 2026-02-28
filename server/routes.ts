@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       accumulatedTime += duration;
     }
 
-    if (state.currentTrackId !== currentTrack.id || Math.abs(state.playbackPosition - trackPosition) > 2) {
+    if (state.currentTrackId !== currentTrack.id || Math.abs(state.playbackPosition - trackPosition) > 1) {
       await storage.updateRadioState({
         currentTrackId: currentTrack.id,
         playbackPosition: trackPosition
@@ -128,6 +128,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         position: trackPosition,
         startOffset: currentTrack.startOffset || 0,
       });
+      
+      // If track changed, also broadcast track_changed to force immediate seek
+      if (state.currentTrackId !== currentTrack.id) {
+        broadcastToClients({
+          type: "track_changed",
+          trackId: currentTrack.id,
+          position: trackPosition,
+          startOffset: currentTrack.startOffset || 0,
+          endOffset: currentTrack.endOffset || null,
+        });
+      }
     }
   }
 

@@ -242,6 +242,13 @@ export default function ListenerPage() {
             if (data.type === "track_changed" && audioRef.current) {
               const start = data.startOffset ?? 0;
               audioRef.current.currentTime = data.position + start;
+            } else if (data.type === "playback_sync" && audioRef.current) {
+              // Only force seek if drift is large to avoid stuttering
+              const start = data.startOffset ?? 0;
+              const drift = Math.abs(audioRef.current.currentTime - (data.position + start));
+              if (drift > 2) {
+                audioRef.current.currentTime = data.position + start;
+              }
             }
           }
           else if (data.type === "chat_message") {
