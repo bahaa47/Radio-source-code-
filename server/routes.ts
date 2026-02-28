@@ -238,8 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          await uploadToStorage(processedKey, processedBuffer, processedMimeType);
-          await storage.updateTrack(track.id, { uploadStatus: "ready" });
+          const storageUrl = await uploadToStorage(processedKey, processedBuffer, processedMimeType);
+          await storage.updateTrack(track.id, { 
+            uploadStatus: "ready",
+            fileUrl: storageUrl.startsWith("http") ? storageUrl : getStorageUrl(processedKey)
+          });
           broadcastToClients({
             type: "track_ready",
             trackId: track.id,
