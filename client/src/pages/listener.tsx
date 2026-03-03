@@ -340,6 +340,11 @@ export default function ListenerPage() {
     const volumeLevel = isMuted ? 0 : volume[0] / 100;
     audioRef.current.volume = volumeLevel;
     if (liveStreamRef.current) liveStreamRef.current.volume = volumeLevel;
+    
+    // Also try to communicate volume to the iframe if possible
+    // Note: Zeno.fm player iframe usually doesn't support external volume control 
+    // via postMessage unless they have a specific API, but we'll keep the internal 
+    // audio synchronized.
   }, [isMuted, volume]);
 
   useEffect(() => {
