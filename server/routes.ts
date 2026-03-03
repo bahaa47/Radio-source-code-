@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const readyTracks = tracks.filter(t => t.uploadStatus === "ready" || !t.uploadStatus);
     const state = await storage.getRadioState();
 
-    if (readyTracks.length === 0 || state.syncMethod === "manual") return;
+    if (readyTracks.length === 0) return;
 
     const totalPlaylistDuration = readyTracks.reduce((sum, t) => {
       const duration = (t.endOffset || t.duration) - (t.startOffset || 0);
