@@ -501,64 +501,32 @@ export default function ListenerPage() {
             </div>
 
             <div className="flex justify-center py-4">
-              <div className="relative group">
-                <motion.div
-                  className="absolute -inset-4 rounded-full opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"
-                  animate={isPlaying ? {
-                    scale: [1, 1.2, 1],
-                    background: [
-                      "radial-gradient(circle, #00d2ff 0%, transparent 70%)",
-                      "radial-gradient(circle, #9d50bb 0%, transparent 70%)",
-                      "radial-gradient(circle, #00d2ff 0%, transparent 70%)",
-                    ]
-                  } : {}}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-                <Button
-                  size="icon"
-                  className="h-28 w-28 rounded-full shadow-[0_0_40px_rgba(0,210,255,0.3)] hover:shadow-[0_0_50px_rgba(0,210,255,0.5)] transition-all duration-300 relative z-10 bg-gradient-to-br from-[#00d2ff] to-[#3a7bd5] border-none"
-                  onClick={togglePlay}
-                  disabled={!radioState.broadcastEnabled}
-                >
-                  {isPlaying && radioState.broadcastEnabled ? (
-                    <Pause className="h-12 w-12 text-white" />
-                  ) : !radioState.broadcastEnabled ? (
-                    <Lock className="h-12 w-12 text-white/50" />
-                  ) : (
-                    <div className="relative flex items-center justify-center">
-                      <Play className="h-12 w-12 ml-2 text-white fill-white" />
-                      <motion.div 
-                        className="absolute inset-0 rounded-full border-4 border-white/30"
-                        animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                    </div>
-                  )}
-                </Button>
-                {radioState.isLive && (
-                  <div className="absolute -top-2 -right-2 z-20">
-                    <span className="relative flex h-6 w-6">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-6 w-6 bg-red-500 items-center justify-center text-[10px] font-bold text-white shadow-lg">LIVE</span>
-                    </span>
-                  </div>
+              <Button
+                size="icon"
+                className="h-24 w-24 rounded-full shadow-lg"
+                onClick={togglePlay}
+                disabled={!radioState.broadcastEnabled}
+              >
+                {isPlaying && radioState.broadcastEnabled ? (
+                  <Pause className="h-10 w-10" />
+                ) : !radioState.broadcastEnabled ? (
+                  <Lock className="h-10 w-10 text-muted-foreground" />
+                ) : (
+                  <Play className="h-10 w-10 ml-1" />
                 )}
-              </div>
+              </Button>
             </div>
 
             <div className="space-y-6">
-              <div className="w-full max-w-[575px] mx-auto overflow-hidden rounded-xl border border-white/20 bg-black/40 backdrop-blur-md shadow-2xl transition-all hover:border-white/40">
-                <div className="relative w-full aspect-[575/250]">
-                  <iframe 
-                    src="https://zeno.fm/player/dream-radio-voice" 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    scrolling="no"
-                    title="Dream Radio Voice Player"
-                    className="absolute inset-0 grayscale-[0.2] contrast-[1.1]"
-                  ></iframe>
-                </div>
+              <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2">
+                <iframe 
+                  src="https://zeno.fm/player/dream-radio-voice" 
+                  width="575" 
+                  height="250" 
+                  frameBorder="0" 
+                  scrolling="no"
+                  className="max-w-full"
+                ></iframe>
               </div>
               <a 
                 href="https://zeno.fm/" 
