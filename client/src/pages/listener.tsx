@@ -12,6 +12,7 @@ import { Play, Pause, Volume2, VolumeX, Radio, Users, MessageCircle, Lock } from
 import { Input } from "@/components/ui/input";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { motion, useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@shared/schema";
 
 export default function ListenerPage() {
@@ -501,20 +502,39 @@ export default function ListenerPage() {
             </div>
 
             <div className="flex justify-center py-4">
-              <Button
-                size="icon"
-                className="h-24 w-24 rounded-full shadow-lg"
-                onClick={togglePlay}
-                disabled={!radioState.broadcastEnabled}
-              >
-                {isPlaying && radioState.broadcastEnabled ? (
-                  <Pause className="h-10 w-10" />
-                ) : !radioState.broadcastEnabled ? (
-                  <Lock className="h-10 w-10 text-muted-foreground" />
-                ) : (
-                  <Play className="h-10 w-10 ml-1" />
+              <div className="flex flex-col items-center gap-4">
+                {radioState.isLive && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-destructive font-bold text-xl animate-pulse flex items-center gap-2 mb-2"
+                  >
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
+                    </span>
+                    WE ARE NOW LIVE
+                  </motion.div>
                 )}
-              </Button>
+                <Button
+                  size="icon"
+                  className={cn(
+                    "h-24 w-24 rounded-full shadow-lg transition-all duration-300",
+                    radioState.isLive ? "bg-destructive hover:bg-destructive/90 scale-110 shadow-destructive/50" : ""
+                  )}
+                  onClick={togglePlay}
+                  disabled={!radioState.broadcastEnabled}
+                  data-testid="button-play-main"
+                >
+                  {isPlaying && radioState.broadcastEnabled ? (
+                    <Pause className="h-10 w-10" />
+                  ) : !radioState.broadcastEnabled ? (
+                    <Lock className="h-10 w-10 text-muted-foreground" />
+                  ) : (
+                    <Play className="h-10 w-10 ml-1" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-6">
