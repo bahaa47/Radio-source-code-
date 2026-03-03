@@ -24,39 +24,6 @@ const menuItems = [
   },
 ];
 
-const adminMenuItems = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: LayoutDashboard,
-    testId: "link-dashboard",
-  },
-  {
-    title: "Analytics",
-    url: "/admin/analytics",
-    icon: BarChart3,
-    testId: "link-analytics",
-  },
-  {
-    title: "Live Stream",
-    url: "/admin/stream",
-    icon: Radio,
-    testId: "link-stream",
-  },
-  {
-    title: "Audio Sources",
-    url: "/admin/audio-sources",
-    icon: Settings2,
-    testId: "link-audio-sources",
-  },
-  {
-    title: "Live Controls",
-    url: "/admin/live",
-    icon: Mic,
-    testId: "link-live-controls",
-  },
-];
-
 export function AppSidebar() {
   const [location, setLocation] = useLocation();
 
@@ -84,30 +51,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location === item.url}
-                    data-testid={item.testId}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
-            Admin Functions <Settings2 className="w-3 h-3" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

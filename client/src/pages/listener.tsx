@@ -513,6 +513,25 @@ export default function ListenerPage() {
             </div>
 
             <div className="space-y-6">
+              <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2">
+                <iframe 
+                  src="https://zeno.fm/player/dream-radio-voice" 
+                  width="575" 
+                  height="250" 
+                  frameBorder="0" 
+                  scrolling="no"
+                  className="max-w-full"
+                ></iframe>
+              </div>
+              <a 
+                href="https://zeno.fm/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block text-center text-sm text-white/40 hover:text-white/60 transition-colors mt-2"
+              >
+                A Zeno.FM Station
+              </a>
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Volume</span>
