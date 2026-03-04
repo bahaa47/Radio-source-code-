@@ -8,12 +8,13 @@ import { ChatWidget } from "@/components/chat-widget";
 import { AnimatedBackground } from "@/components/animated-background";
 import { FloatingParticles } from "@/components/floating-particles";
 import { AudioVisualizer } from "@/components/audio-visualizer";
-import { Play, Pause, Volume2, VolumeX, Radio, Users, MessageCircle, Lock } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Radio, Users, MessageCircle, Lock, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@shared/schema";
+import logoImg from "@assets/IMG_3672_1772631960491.png";
 
 export default function ListenerPage() {
   const { radioState, tracks, isConnected, ws } = useWebSocket();
@@ -462,7 +463,7 @@ export default function ListenerPage() {
         >
           <div className="text-center space-y-8">
             <motion.div
-              className="inline-flex items-center justify-center w-32 h-32 rounded-full mb-4 relative"
+              className="inline-flex items-center justify-center w-32 h-32 rounded-full mb-4 relative overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, hsla(195, 100%, 50%, 0.3), hsla(270, 60%, 65%, 0.3))",
                 backdropFilter: "blur(20px)",
@@ -477,12 +478,27 @@ export default function ListenerPage() {
               }}
               transition={{ duration: 4, repeat: Infinity }}
             >
-              <Radio className="w-16 h-16 text-foreground drop-shadow-lg" />
+              <img 
+                src={logoImg} 
+                alt="Radio Dream Voice Logo" 
+                className="w-full h-full object-cover p-2"
+                data-testid="img-logo"
+              />
             </motion.div>
             
             <div className="space-y-3">
               <h1 className="text-6xl font-semibold tracking-tight text-white drop-shadow-lg">RADIO DREAM VOICE</h1>
-              <p className="text-xl text-white/80">Your 24/7 streaming radio station</p>
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-xl text-white/80">Your 24/7 streaming radio station</p>
+                <a 
+                  href="tel:+96170736396" 
+                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-md border border-white/10"
+                  data-testid="link-phone"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span className="font-medium">+961 70 736 396</span>
+                </a>
+              </div>
             </div>
             <AudioVisualizer isPlaying={isPlaying} shouldReduceMotion={shouldReduceMotion || false} />
           </div>
