@@ -343,6 +343,12 @@ export default function ListenerPage() {
     const container = casterContainerRef.current;
     if (!container) return;
 
+    const placeholder = document.createElement("p");
+    placeholder.id = "caster-placeholder";
+    placeholder.textContent = "Loading player…";
+    placeholder.style.cssText = "color:rgba(255,255,255,0.4);font-size:14px;text-align:center;padding:16px;";
+    container.appendChild(placeholder);
+
     const embedDiv = document.createElement("div");
     embedDiv.setAttribute("data-type", "podcastsPlayer");
     embedDiv.setAttribute("data-publicToken", "e86556b5-4d8a-4e2b-9289-9c7775e4f452");
@@ -357,10 +363,15 @@ export default function ListenerPage() {
     const script = document.createElement("script");
     script.src = "//cdn.cloud.caster.fm//widgets/embed.js";
     script.async = true;
+    script.onload = () => {
+      const ph = document.getElementById("caster-placeholder");
+      if (ph) ph.remove();
+    };
     document.body.appendChild(script);
 
     return () => {
       if (container.contains(embedDiv)) container.removeChild(embedDiv);
+      if (container.contains(placeholder)) container.removeChild(placeholder);
       if (document.body.contains(script)) document.body.removeChild(script);
     };
   }, []);
@@ -587,7 +598,7 @@ export default function ListenerPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2">
+              <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2 min-h-[320px] items-center">
                 <div ref={casterContainerRef} className="w-full" />
               </div>
 
