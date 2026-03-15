@@ -341,14 +341,20 @@ export default function ListenerPage() {
 
   useEffect(() => {
     const existing = document.querySelector('script[src*="caster.fm"]');
-    if (existing) return;
+    if (existing) {
+      const embed = document.querySelector(".cstrEmbed");
+      if (embed && embed.getAttribute("data-rendered") !== "true") {
+        const fresh = document.createElement("script");
+        fresh.src = "//cdn.cloud.caster.fm//widgets/embed.js";
+        fresh.async = true;
+        document.body.appendChild(fresh);
+      }
+      return;
+    }
     const script = document.createElement("script");
     script.src = "//cdn.cloud.caster.fm//widgets/embed.js";
     script.async = true;
     document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
   }, []);
 
   useEffect(() => {
@@ -565,11 +571,8 @@ export default function ListenerPage() {
                   data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6"
                   data-rendered="false"
                   className="cstrEmbed w-full"
-                >
-                  <a href="https://www.caster.fm">Shoutcast Hosting</a>{" "}
-                  <a href="https://www.caster.fm">Stream Hosting</a>{" "}
-                  <a href="https://www.caster.fm">Radio Server Hosting</a>
-                </div>
+                  suppressHydrationWarning
+                />
               </div>
 
               <div className="space-y-2">
