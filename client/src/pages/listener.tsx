@@ -340,6 +340,18 @@ export default function ListenerPage() {
   }, [isMuted, volume]);
 
   useEffect(() => {
+    const existing = document.querySelector('script[src*="caster.fm"]');
+    if (existing) return;
+    const script = document.createElement("script");
+    script.src = "//cdn.cloud.caster.fm//widgets/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!audioRef.current || !currentTrack) return;
     if (lastTrackIdRef.current !== currentTrack.id) {
       lastTrackIdRef.current = currentTrack.id;
@@ -545,23 +557,20 @@ export default function ListenerPage() {
 
             <div className="space-y-6">
               <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2">
-                <iframe 
-                  src="https://zeno.fm/player/dream-radio-voice" 
-                  width="575" 
-                  height="250" 
-                  frameBorder="0" 
-                  scrolling="no"
-                  className="max-w-full"
-                ></iframe>
+                <div
+                  data-type="podcastsPlayer"
+                  data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452"
+                  data-theme="dark"
+                  data-color="e81e4d"
+                  data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6"
+                  data-rendered="false"
+                  className="cstrEmbed w-full"
+                >
+                  <a href="https://www.caster.fm">Shoutcast Hosting</a>{" "}
+                  <a href="https://www.caster.fm">Stream Hosting</a>{" "}
+                  <a href="https://www.caster.fm">Radio Server Hosting</a>
+                </div>
               </div>
-              <a 
-                href="https://zeno.fm/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-center text-sm text-white/40 hover:text-white/60 transition-colors mt-2"
-              >
-                A Zeno.FM Station
-              </a>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
