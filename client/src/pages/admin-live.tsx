@@ -70,9 +70,7 @@ export default function AdminLive() {
     const newLiveState = !radioState?.isLive;
     
     if (newLiveState) {
-      // Going live - request audio access
       try {
-        // Connect to WebSocket for audio streaming
         const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
         wsRef.current = ws;
@@ -90,7 +88,6 @@ export default function AdminLive() {
                 combinedBuffer.set(new Uint8Array(headerBuffer), 0);
                 combinedBuffer.set(new Uint8Array(pcmBuffer), 8);
                 
-                // Send with binary frame type for efficiency
                 ws.send(combinedBuffer.buffer);
               } catch (error) {
                 console.error("Failed to send audio data:", error);
@@ -114,7 +111,6 @@ export default function AdminLive() {
           });
         };
 
-        // Wait for WebSocket to connect
         await new Promise((resolve) => {
           const checkConnection = () => {
             if (ws.readyState === WebSocket.OPEN) {
@@ -124,7 +120,7 @@ export default function AdminLive() {
             }
           };
           checkConnection();
-          setTimeout(() => resolve(null), 2000); // Fallback timeout
+          setTimeout(() => resolve(null), 2000);
         });
 
         updateLiveMutation.mutate(
@@ -155,7 +151,6 @@ export default function AdminLive() {
         });
       }
     } else {
-      // Ending live broadcast
       stopMicrophone();
       stopSystemAudio();
       if (wsRef.current) {

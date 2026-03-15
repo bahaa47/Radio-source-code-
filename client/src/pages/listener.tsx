@@ -245,7 +245,6 @@ export default function ListenerPage() {
               const start = data.startOffset ?? 0;
               audioRef.current.currentTime = data.position + start;
             } else if (data.type === "playback_sync" && audioRef.current) {
-              // Only force seek if drift is large to avoid stuttering
               const start = data.startOffset ?? 0;
               const drift = Math.abs(audioRef.current.currentTime - (data.position + start));
               if (drift > 2) {
@@ -286,7 +285,6 @@ export default function ListenerPage() {
       currentTrackUrlRef.current = resolvedUrl;
       audio.src = resolvedUrl;
       const start = currentTrack.startOffset || 0;
-      // Use the actual current server playback position, starting from the offset
       audio.currentTime = radioState.playbackPosition + start;
       
       const playAudio = () => {
@@ -298,13 +296,11 @@ export default function ListenerPage() {
         }
       };
 
-      // Ensure the src is actually loaded before setting currentTime again
       audio.onloadedmetadata = () => {
         audio.currentTime = radioState.playbackPosition + start;
         playAudio();
       };
       
-      // Also try immediately
       playAudio();
     } else if (isPlaying && audio.paused) {
       audio.play().catch(error => {
@@ -320,7 +316,6 @@ export default function ListenerPage() {
         const end = currentTrack.endOffset || currentTrack.duration;
         const serverPosition = serverPositionRef.current;
         
-        // Respect end offset
         if (audio.currentTime >= end) {
           audio.pause();
           return;
@@ -342,11 +337,6 @@ export default function ListenerPage() {
     const volumeLevel = isMuted ? 0 : volume[0] / 100;
     audioRef.current.volume = volumeLevel;
     if (liveStreamRef.current) liveStreamRef.current.volume = volumeLevel;
-    
-    // Also try to communicate volume to the iframe if possible
-    // Note: Zeno.fm player iframe usually doesn't support external volume control 
-    // via postMessage unless they have a specific API, but we'll keep the internal 
-    // audio synchronized.
   }, [isMuted, volume]);
 
   useEffect(() => {

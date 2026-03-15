@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 
 const BUFFER_SIZE = 4096;
 
-// Convert Float32 PCM to Int16 PCM for more efficient transmission
 function float32ToInt16(float32Array: Float32Array): Int16Array {
   const int16Array = new Int16Array(float32Array.length);
   for (let i = 0; i < float32Array.length; i++) {
@@ -134,7 +133,6 @@ export function useSystemAudio() {
     processor.onaudioprocess = (event) => {
       if (onAudioDataRef.current) {
         const inputData = event.inputBuffer.getChannelData(0);
-        // Convert Float32 to Int16 for efficient transmission
         const int16Data = float32ToInt16(inputData);
         const buffer = int16Data.buffer;
         onAudioDataRef.current(buffer, sampleRate);
@@ -155,8 +153,6 @@ export function useSystemAudio() {
     try {
       setError(null);
       
-      // Use getDisplayMedia to capture all system audio (including Bluetooth audio)
-      // This captures the audio being sent to your system's audio output device
       const stream = await (navigator.mediaDevices as any).getDisplayMedia({
         audio: {
           echoCancellation: false,
@@ -169,7 +165,6 @@ export function useSystemAudio() {
           }
         },
       } as any).catch(async () => {
-        // Fallback for browsers that handle video differently
         return (navigator.mediaDevices as any).getDisplayMedia({
           audio: {
             echoCancellation: false,

@@ -129,7 +129,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startOffset: currentTrack.startOffset || 0,
       });
       
-      // If track changed, also broadcast track_changed to force immediate seek
       if (state.currentTrackId !== currentTrack.id) {
         broadcastToClients({
           type: "track_changed",
@@ -288,7 +287,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (isVideo) {
             try {
-              console.log(`Processing video to audio: ${uniqueKey}`);
               const inputPath = path.join(process.cwd(), "uploads", `temp_${Date.now()}${ext}`);
               const outputPath = inputPath.replace(ext, ".mp3");
               
@@ -304,7 +302,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await fs.unlink(inputPath);
               await fs.unlink(outputPath);
               
-              // Update track URL if it changed
               await storage.updateTrack(track.id, { 
                 fileUrl: getStorageUrl(processedKey) 
               });
@@ -544,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trackData = insertAudioTrackSchema.parse({
         title,
         artist,
-        duration: duration || 180, // Fallback if no duration provided
+        duration: duration || 180,
         fileUrl: getStorageUrl(uniqueKey),
         order: (await storage.getAllTracks()).length,
       });
@@ -771,7 +768,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     noServer: true
   });
 
-  // Handle WebSocket upgrade at HTTP server level
   httpServer.on('upgrade', (request, socket, head) => {
     try {
       const url = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);

@@ -62,18 +62,10 @@ export default function AdminPlaylist() {
   const loadFFmpeg = async () => {
     if (ffmpegRef.current) return ffmpegRef.current;
     
-    // Check if SharedArrayBuffer is available
-    // Replit environment might not have the correct headers (Cross-Origin-Opener-Policy)
-    // to enable SharedArrayBuffer even if the browser supports it.
     const isMultiThreaded = typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated;
-    console.log(`[FFmpeg] Multi-threading support (SharedArrayBuffer + crossOriginIsolated): ${isMultiThreaded}`);
 
     const ffmpeg = new FFmpeg();
-    // Use a more reliable CDN or version if needed, but 0.12.6 is generally fine.
-    // The key is to ensure we don't block the UI and handle errors gracefully.
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
-    
-    console.log("[FFmpeg] Loading core from:", baseURL);
     
     try {
       await ffmpeg.load({
@@ -112,18 +104,10 @@ export default function AdminPlaylist() {
     
     ffmpeg.on("log", ({ message }) => {
       if (message.includes("size=") || message.includes("time=")) {
-        // Extract time to update progress if possible, but for now just log
-        console.log(`[3/5][FFmpeg] Processing: ${message}`);
       }
     });
 
-    console.log("[3/5] Starting conversion...");
     try {
-      // Optimized for speed and compatibility
-      // -vn: no video
-      // -acodec libmp3lame: mp3 encoding
-      // -q:a 4: good variable bitrate (~160kbps)
-      // -preset ultrafast: fastest compression
       await ffmpeg.exec([
         "-i", inputName,
         "-vn",
@@ -198,7 +182,6 @@ export default function AdminPlaylist() {
     },
   });
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel('schema-db-changes')
@@ -288,16 +271,13 @@ export default function AdminPlaylist() {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Prevent multiple triggers
     if (isUploading) return;
     
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Clear input immediately to prevent double-upload of same file
     if (fileInputRef.current) fileInputRef.current.value = "";
 
-    // Basic validation
     const isAudio = file.type.startsWith('audio/');
     const isVideo = file.type.startsWith('video/');
 

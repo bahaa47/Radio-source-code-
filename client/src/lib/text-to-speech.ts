@@ -4,7 +4,6 @@ export function speak(text: string): void {
     return;
   }
 
-  // Cancel any ongoing speech
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);

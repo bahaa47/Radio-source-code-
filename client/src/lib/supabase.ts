@@ -7,7 +7,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials missing in VITE_ env vars. Realtime and direct uploads may not work.');
 }
 
-// Fallback to non-VITE if available (for dev/local)
 const finalUrl = supabaseUrl || (typeof process !== 'undefined' ? process.env.SUPABASE_URL : '') || '';
 const finalKey = supabaseAnonKey || (typeof process !== 'undefined' ? process.env.SUPABASE_ANON_KEY : '') || '';
 

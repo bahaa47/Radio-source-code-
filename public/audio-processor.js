@@ -19,13 +19,11 @@ class AudioProcessor extends AudioWorkletProcessor {
       this.buffer[this.bufferIndex++] = inputChannel[i];
       
       if (this.bufferIndex >= this.bufferSize) {
-        // Create a new Float32Array to avoid buffer reuse issues
         const chunk = new Float32Array(this.buffer);
         this.port.postMessage({
           pcmData: chunk.buffer,
           sampleRate: this.sampleRateValue
         }, [chunk.buffer]);
-        // Allocate new buffer for next chunk
         this.buffer = new Float32Array(this.bufferSize);
         this.bufferIndex = 0;
       }

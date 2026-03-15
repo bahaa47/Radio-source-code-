@@ -20,7 +20,6 @@ export default function AdminStreamConfig() {
     refetchInterval: 5000,
   });
 
-  // Sync state with config when it loads
   useEffect(() => {
     if (config) {
       setStreamUrl(config.streamUrl);

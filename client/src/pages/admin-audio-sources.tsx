@@ -74,7 +74,6 @@ export default function AdminAudioSources() {
       try {
         analyserRef.current.disconnect();
       } catch (e) {
-        // Ignore disconnect errors
       }
       analyserRef.current = null;
     }
@@ -85,7 +84,6 @@ export default function AdminAudioSources() {
           audioContextRef.current.close();
         }
       } catch (e) {
-        // Ignore close errors on some browsers
       }
       audioContextRef.current = null;
     }
@@ -113,11 +111,9 @@ export default function AdminAudioSources() {
       return;
     }
 
-    // Clean up any existing test first
     cleanupAudio();
 
     try {
-      // Check if AudioContext is supported
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) {
         toast({
@@ -142,7 +138,6 @@ export default function AdminAudioSources() {
       const audioContext = new AudioContextClass();
       audioContextRef.current = audioContext;
 
-      // Resume audio context if suspended (required on some mobile browsers)
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
@@ -161,7 +156,6 @@ export default function AdminAudioSources() {
         description: "Speak or play audio through your mixer to see the levels",
       });
     } catch (err) {
-      // Clean up on error
       cleanupAudio();
       
       const errorMessage = err instanceof Error ? err.message : "Unknown error";

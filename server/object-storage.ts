@@ -2,7 +2,6 @@ import { Client } from "@replit/object-storage";
 import path from "path";
 import fs from "fs/promises";
 
-// Dynamically import ImageKit to avoid startup errors if package is missing
 let ImageKit: any;
 const loadImageKit = async () => {
   if (ImageKit) return ImageKit;
@@ -120,10 +119,6 @@ export async function uploadToStorage(
 }
 
 export async function deleteFromStorage(key: string): Promise<void> {
-  // ImageKit deletion would require storing the fileId, 
-  // but for now we'll skip complex deletion logic for IK 
-  // to stay within the fast mode turn limit.
-  
   const client = getStorageClient();
   
   if (client && !useLocalStorage && !useImageKit) {
@@ -140,7 +135,6 @@ export async function deleteFromStorage(key: string): Promise<void> {
     const filePath = path.join(UPLOADS_DIR, filename);
     await fs.unlink(filePath);
   } catch (error) {
-    // console.error("Failed to delete from local storage:", error);
   }
 }
 
