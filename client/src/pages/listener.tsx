@@ -337,22 +337,32 @@ export default function ListenerPage() {
     }
   }, [radioState.isLive]);
 
+  const casterContainerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
-    const existing = document.querySelector('script[src*="caster.fm"]');
-    if (existing) {
-      const embed = document.querySelector(".cstrEmbed");
-      if (embed && embed.getAttribute("data-rendered") !== "true") {
-        const fresh = document.createElement("script");
-        fresh.src = "//cdn.cloud.caster.fm//widgets/embed.js";
-        fresh.async = true;
-        document.body.appendChild(fresh);
-      }
-      return;
-    }
+    const container = casterContainerRef.current;
+    if (!container) return;
+
+    const embedDiv = document.createElement("div");
+    embedDiv.setAttribute("data-type", "podcastsPlayer");
+    embedDiv.setAttribute("data-publicToken", "e86556b5-4d8a-4e2b-9289-9c7775e4f452");
+    embedDiv.setAttribute("data-theme", "dark");
+    embedDiv.setAttribute("data-color", "e81e4d");
+    embedDiv.setAttribute("data-channelId", "a14540ae-c702-4969-8b7e-4902cd5cf9e6");
+    embedDiv.setAttribute("data-rendered", "false");
+    embedDiv.className = "cstrEmbed";
+    embedDiv.style.width = "100%";
+    container.appendChild(embedDiv);
+
     const script = document.createElement("script");
     script.src = "//cdn.cloud.caster.fm//widgets/embed.js";
     script.async = true;
     document.body.appendChild(script);
+
+    return () => {
+      if (container.contains(embedDiv)) container.removeChild(embedDiv);
+      if (document.body.contains(script)) document.body.removeChild(script);
+    };
   }, []);
 
   useEffect(() => {
@@ -578,16 +588,7 @@ export default function ListenerPage() {
 
             <div className="space-y-6">
               <div className="flex justify-center w-full overflow-hidden rounded-lg border border-white/10 bg-black/20 p-2">
-                <div
-                  data-type="podcastsPlayer"
-                  data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452"
-                  data-theme="dark"
-                  data-color="e81e4d"
-                  data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6"
-                  data-rendered="false"
-                  className="cstrEmbed w-full"
-                  suppressHydrationWarning
-                />
+                <div ref={casterContainerRef} className="w-full" />
               </div>
 
               <div className="space-y-2">
