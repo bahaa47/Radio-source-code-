@@ -76,45 +76,34 @@ export default function ListenerPage() {
   const playMicrophoneAudio = useCallback((arrayBuffer: ArrayBuffer) => {
     try {
       if (arrayBuffer.byteLength < 8) return;
-      
+      if (!micAudioContextRef.current || micAudioContextRef.current.state === 'suspended') return;
+
       const dataView = new DataView(arrayBuffer);
       const sampleRate = dataView.getUint32(0, true);
       const pcmByteLength = dataView.getUint32(4, true);
-      
+
       if (arrayBuffer.byteLength < 8 + pcmByteLength || sampleRate < 8000 || sampleRate > 96000) return;
-      
+
       const pcmSlice = arrayBuffer.slice(8, 8 + pcmByteLength);
       const int16Data = new Int16Array(pcmSlice);
       const pcmData = new Float32Array(int16Data.length);
       for (let i = 0; i < int16Data.length; i++) {
         pcmData[i] = int16Data[i] / 0x8000;
       }
-      
-      if (!micAudioContextRef.current) {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        micAudioContextRef.current = new AudioContextClass();
-        micGainNodeRef.current = micAudioContextRef.current.createGain();
-        micGainNodeRef.current.connect(micAudioContextRef.current.destination);
-        
-        const volumeLevel = isMuted ? 0 : volume[0] / 100;
-        micGainNodeRef.current.gain.value = volumeLevel;
-        micNextStartTimeRef.current = 0;
-      }
-      
-      const audioContext = micAudioContextRef.current;
-      if (audioContext.state === 'suspended') audioContext.resume();
+
       if (!micGainNodeRef.current) return;
 
+      const audioContext = micAudioContextRef.current;
       const audioBuffer = audioContext.createBuffer(1, pcmData.length, sampleRate);
       audioBuffer.getChannelData(0).set(pcmData);
-      
+
       const currentTime = audioContext.currentTime;
       const bufferDuration = pcmData.length / sampleRate;
-      
+
       if (micNextStartTimeRef.current < currentTime - 0.5) {
         micNextStartTimeRef.current = currentTime + 0.02;
       }
-      
+
       const startTime = Math.max(currentTime + 0.005, micNextStartTimeRef.current);
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
@@ -124,7 +113,7 @@ export default function ListenerPage() {
     } catch (error) {
       console.error("Microphone audio playback error:", error);
     }
-  }, [isMuted, volume]);
+  }, []);
 
   useEffect(() => {
     playMicrophoneAudioRef.current = playMicrophoneAudio;
@@ -340,6 +329,15 @@ export default function ListenerPage() {
   }, [isMuted, volume]);
 
   useEffect(() => {
+    if (!radioState.isLive) {
+      if (micAudioContextRef.current) {
+        micAudioContextRef.current.suspend();
+      }
+      setIsPlaying(false);
+    }
+  }, [radioState.isLive]);
+
+  useEffect(() => {
     const existing = document.querySelector('script[src*="caster.fm"]');
     if (existing) {
       const embed = document.querySelector(".cstrEmbed");
@@ -394,10 +392,22 @@ export default function ListenerPage() {
     micGainNodeRef.current.gain.value = isMuted ? 0 : volume[0] / 100;
   }, [isMuted, volume]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!radioState.broadcastEnabled) return;
+
+    if (radioState.isLive) {
+      if (isPlaying) {
+        if (micAudioContextRef.current) micAudioContextRef.current.suspend();
+        setIsPlaying(false);
+      } else {
+        await initMicAudioContext();
+        setIsPlaying(true);
+      }
+      return;
+    }
+
     if (!liveStreamRef.current) return;
-    
+
     if (streamConfig.isEnabled && streamConfig.streamUrl) {
       if (isPlaying) {
         liveStreamRef.current.pause();
@@ -531,13 +541,18 @@ export default function ListenerPage() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-destructive font-bold text-xl animate-pulse flex items-center gap-2 mb-2"
+                    className="flex flex-col items-center gap-1 mb-2"
                   >
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
-                    </span>
-                    WE ARE NOW LIVE
+                    <div className="text-destructive font-bold text-xl animate-pulse flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
+                      </span>
+                      WE ARE NOW LIVE
+                    </div>
+                    {!isPlaying && (
+                      <p className="text-sm text-muted-foreground">Click play to listen</p>
+                    )}
                   </motion.div>
                 )}
                 <Button
