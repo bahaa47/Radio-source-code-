@@ -43,13 +43,13 @@
             width: 200px;
             height: 200px;
             margin: 0 auto 20px;
-            background: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             border: 5px solid rgba(255,255,255,0.3);
+            background-color: #fff;
         }
 
         .logo img {
@@ -219,7 +219,6 @@
             }
         }
 
-        /* Audio Player Styling */
         audio {
             width: 100%;
             margin-top: 20px;
@@ -231,10 +230,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <!-- Replace with your logo -->
-                <img src="YOUR_LOGO_URL_HERE" alt="RADIO DREAM VOICE Logo">
-                <!-- Or use text logo if no image -->
-                <!-- <h1 style="font-size: 3rem; color: #667eea; font-weight: 700;">RDV</h1> -->
+                <img src="https://www.yelleb.com/img/lb/e/1519819773-83-radio-dream-voice.png" alt="RADIO DREAM VOICE Logo">
             </div>
             <h1 class="station-name">RADIO DREAM VOICE</h1>
             <p class="tagline">Your Voice, Your Dreams, Live 24/7</p>
@@ -253,11 +249,9 @@
                 
                 <div class="status" id="status">Click play to start listening</div>
                 
-                <!-- Replace with your streaming details -->
+                <!-- Audio Player -->
                 <audio id="radioPlayer" preload="none">
-                    <source src="http://YOUR_STREAM_IP:YOUR_PORT/;" type="audio/mpeg">
-                    <!-- For Shoutcast/Icecast with auth: -->
-                    <!-- <source src="http://username:password@YOUR_STREAM_IP:YOUR_PORT/stream" type="audio/mpeg"> -->
+                    <source src="http://sapircast.caster.fm:12142/;" type="audio/mpeg">
                     Your browser does not support the audio element.
                 </audio>
                 
@@ -323,7 +317,6 @@
             isPlaying = !isPlaying;
         });
 
-        // Auto-update status when stream state changes
         audio.addEventListener('play', () => {
             isPlaying = true;
             playBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -345,7 +338,6 @@
             status.classList.remove('live');
         });
 
-        // Show loading state
         audio.addEventListener('loadstart', () => {
             status.textContent = 'Connecting to stream...';
         });
