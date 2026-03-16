@@ -3,89 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radio Dream Voice</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      background-color: #181818;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 30px rgba(232, 30, 77, 0.5);
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-    }
-
-    .logo {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 20px auto;
-      border-radius: 50%;
-      background: url('https://via.placeholder.com/120x120.png?text=Logo') center/cover no-repeat;
-      box-shadow: 0 0 15px rgba(232, 30, 77, 0.7);
-    }
-
-    h1 {
-      color: #e81e4d;
-      margin-bottom: 25px;
-      font-size: 1.8em;
-    }
-
-    .radio-widget {
-      width: 100%;
-    }
-
-    .radio-widget iframe {
-      width: 100%;
-      height: 150px;
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(232, 30, 77, 0.4);
-    }
-
-    @media (max-width: 500px) {
-      .container {
-        padding: 20px;
-      }
-      h1 {
-        font-size: 1.5em;
-      }
-    }
-  </style>
+  <title>Radio Dream Voice - Live Player</title>
 </head>
-<body>
+<body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; background-color:#111;">
 
-  <div class="container">
-    <!-- Logo -->
-    <div class="logo"></div>
-
-    <!-- Station Name -->
-    <h1>Radio Dream Voice</h1>
-
-    <!-- Caster.fm Widget -->
-    <div class="radio-widget" data-type="newStreamPlayer" 
-         data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452" 
-         data-theme="dark" 
-         data-color="e81e4d" 
-         data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6" 
-         data-rendered="false">
-      <a href="https://www.caster.fm">Shoutcast Hosting</a> 
-      <a href="https://www.caster.fm">Stream Hosting</a> 
-      <a href="https://www.caster.fm">Radio Server Hosting</a>
-    </div>
+  <!-- Caster.fm Widget (Live Player) -->
+  <div data-type="newStreamPlayer"
+       data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452"
+       data-theme="dark"
+       data-color="e81e4d"
+       data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6"
+       data-rendered="false"
+       class="cstrEmbed">
+    <a href="https://www.caster.fm">Shoutcast Hosting</a>
+    <a href="https://www.caster.fm">Stream Hosting</a>
+    <a href="https://www.caster.fm">Radio Server Hosting</a>
   </div>
 
+  <!-- Caster.fm Script -->
   <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
+
 </body>
 </html>
