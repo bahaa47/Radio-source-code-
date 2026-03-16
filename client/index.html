@@ -1,19 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Radio Dream Voice - Live</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Dream Voice</title>
+  <style>
+    /* Reset some default styles */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
 
-<link rel="stylesheet" href="style.css">
+    h1 {
+      margin-bottom: 20px;
+      color: #e81e4d;
+    }
 
+    .radio-widget {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* Optional: make the iframe responsive if widget renders as iframe */
+    .radio-widget iframe {
+      width: 100%;
+      height: 150px;
+      border: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<div data-type="newStreamPlayer" data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452" data-theme="dark" data-color="e81e4d" data-channelId="" data-rendered="false" class="cstrEmbed"><a href="https://www.caster.fm">Shoutcast Hosting</a> <a href="https://www.caster.fm">Stream Hosting</a> <a href="https://www.caster.fm">Radio Server Hosting</a></div><script src="//cdn.cloud.caster.fm//widgets/embed.js"></script>
+  <h1>Radio Dream Voice</h1>
 
-<button onclick="playRadio()">▶ Play</button>
-<button onclick="pauseRadio()">⏸ Pause</button>
+  <!-- Caster.fm Widget -->
+  <div class="radio-widget" data-type="newStreamPlayer" 
+       data-publicToken="e86556b5-4d8a-4e2b-9289-9c7775e4f452" 
+       data-theme="dark" 
+       data-color="e81e4d" 
+       data-channelId="a14540ae-c702-4969-8b7e-4902cd5cf9e6" 
+       data-rendered="false">
+    <a href="https://www.caster.fm">Shoutcast Hosting</a> 
+    <a href="https://www.caster.fm">Stream Hosting</a> 
+    <a href="https://www.caster.fm">Radio Server Hosting</a>
+  </div>
+  <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
 
-</div>
+</body>
+</html>
